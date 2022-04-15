@@ -2,12 +2,9 @@ import json
 import time
 import random
 import os
-from django.shortcuts import render, redirect
-from .models import Proxy
-import datetime
+from django.shortcuts import render
 from django.http import JsonResponse
 from django.db.models import Q
-from requests_html import HTMLSession
 
 
 def Request(request):

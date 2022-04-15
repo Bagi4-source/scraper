@@ -1,6 +1,8 @@
+import requests
 from django.core.management.base import BaseCommand
 from requests_html import HTMLSession
 import json
+from django.conf import settings
 
 
 class Command(BaseCommand):
@@ -21,15 +23,16 @@ class Command(BaseCommand):
         advanced = bool(options['advanced'][0])
 
         def HTMLrender(link, json_mode=False, js_render=False):
-            username, password, ip, port = "j25Ak4", "UK046Q", "46.232.10.21", "8000"
-            proxy = f'http://{username}:{password}@{ip}:{port}'
-            print(proxy)
+            proxy = settings.PROXY
+            change_proxy_url = settings.CHANGE_PROXY_URL
             proxies = {'http': proxy, 'https': proxy}
             session = HTMLSession()
             r = session.get(link, proxies=proxies)
             if r.status_code == 200 and js_render:
                 r.html.render(timeout=30)
             session.close()
+            if change_proxy_url != "":
+                requests.get(change_proxy_url)
             if json_mode:
                 return r.json(), r.status_code, r.headers, r.cookies
             return r.html.html, r.status_code, r.headers, r.cookies
@@ -52,7 +55,7 @@ class Command(BaseCommand):
                     "status": status,
                     "params": {
                         "json": json_mode,
-                        "render_js": js_render,
+                        "js_render": js_render,
                         "advanced": advanced,
                     },
                 }
