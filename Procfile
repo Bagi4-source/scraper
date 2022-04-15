@@ -1,1 +1,1 @@
-web: python3 manage.py runserver
+web: gunicorn --timeout 200 --workers 3 djangoProject.wsgi
