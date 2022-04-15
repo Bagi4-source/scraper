@@ -29,7 +29,7 @@ class Command(BaseCommand):
             session = HTMLSession()
             r = session.get(link, proxies=proxies)
             if r.status_code == 200 and js_render:
-                r.html.render(timeout=30)
+                r.html.render(sleep = 10)
             session.close()
             if change_proxy_url != "":
                 requests.get(change_proxy_url)
