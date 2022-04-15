@@ -26,7 +26,7 @@ SECRET_KEY = 'django-insecure-=*30cv-bf%=f@got5#r!2m_)(vd3$u7p*6!)^@h*@w7pz0&5-o
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ["bagi4-api-scraper.herokuapp.com"]
+ALLOWED_HOSTS = ["bagi4-api-scraper.herokuapp.com", "127.0.0.1"]
 
 
 # Application definition
