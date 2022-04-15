@@ -1,1 +1,1 @@
-web: gunicorn --timeout 200 --workers 3 djangoProject.wsgi
+web: gunicorn --timeout 200 djangoProject.wsgi & pyppeteer-install

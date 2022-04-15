@@ -27,7 +27,7 @@ class Command(BaseCommand):
             change_proxy_url = settings.CHANGE_PROXY_URL
             proxies = {'http': proxy, 'https': proxy}
             session = HTMLSession()
-            r = session.get(link, proxies=proxies)
+            r = session.get(link)
             if r.status_code == 200 and js_render:
                 r.html.render(sleep = 10)
             session.close()
