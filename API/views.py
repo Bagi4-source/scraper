@@ -39,11 +39,10 @@ def Request(request):
             with open(f"temp/{name}.json", "r") as File:
                 result = json.loads(File.read())
             os.remove(f"temp/{name}.json")
+        return JsonResponse(result)
 
-    loop = asyncio.new_event_loop()
-    loop.run_until_complete(start_request(url, name, json_mode, js_render, advanced))
-    loop.close()
-    return JsonResponse(result)
+    return Thread(target=start_request, args=(url, name, json_mode, js_render, advanced, )).start()
+
 
 
 def Home(request):
