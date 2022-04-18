@@ -164,7 +164,10 @@ class Web:
                 os.remove(f'temp/proxy_{name}.zip')
 
             self.driver.get(url)
-            self.headers = self.driver.execute_script("var req = new XMLHttpRequest();req.open('GET', document.location, false);req.send(null);return req.getAllResponseHeaders()")
+            try:
+                self.headers = self.driver.execute_script("var req = new XMLHttpRequest();req.open('GET', document.location, false);req.send(null);return req.getAllResponseHeaders()")
+            except:
+                self.headers = []
             self.headers = self.headers.splitlines()
             self.page = self.driver.page_source
             self.cookies = self.driver.get_cookies()
