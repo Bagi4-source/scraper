@@ -101,3 +101,4 @@ wsproto==1.1.0
 yarl==1.6.3
 zc.lockfile==2.0
 zipp==3.7.0
+selenium==4.1.2
