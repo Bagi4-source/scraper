@@ -12,13 +12,14 @@ from bs4 import BeautifulSoup
 
 
 class Web:
-    def __init__(self, ip, capabilities, js_render, user_agent=FakeAgent().get_agent(),
+    def __init__(self, ip, capabilities, js_render, json_mode, user_agent=FakeAgent().get_agent(),
                  url="https://www.google.com/", proxy=None):
         self.page = ""
         self.status = 0
         self.headers = ""
         self.cookies = []
         self.user_agent = user_agent
+        self.js_status = False
         try:
             options = webdriver.ChromeOptions()
 
@@ -104,6 +105,13 @@ class Web:
             self.headers = self.headers.splitlines()
             self.page = self.driver.page_source
             self.cookies = self.driver.get_cookies()
+
+            if json_mode and self.page != "":
+                soup = BeautifulSoup(self.page, 'lxml')
+                pre = soup.find_all('pre')
+                if bool(len(pre)):
+                    self.page = json.loads(soup.find('pre').text)
+                    self.js_status = True
         finally:
             self.driver.close()
             self.driver.quit()
@@ -111,13 +119,7 @@ class Web:
     def get_status_code(self):
         return self.status
 
-    def get_page(self, json_mode):
-        if json_mode and self.page != "":
-            soup = BeautifulSoup(self.page, 'lxml')
-            pre = soup.find_all('pre')
-            if bool(len(pre)):
-                data = json.loads(soup.find('pre').text)
-                return data
+    def get_page(self):
         return self.page
 
     def get_cookies(self):
@@ -128,6 +130,9 @@ class Web:
 
     def get_agent(self):
         return self.user_agent
+
+    def get_js_status(self):
+        return self.js_status
 
 
 capabilities = {
@@ -162,20 +167,22 @@ class Command(BaseCommand):
             session = Web(
                 ip=settings.SERVER_IP,
                 url=link,
+                json_mode=json_mode,
                 capabilities=capabilities,
                 proxy=settings.PROXY,
                 js_render=js_render
             )
             if change_proxy_url != "":
                 requests.get(change_proxy_url)
-            return session.get_page(json_mode),\
+            return session.get_page(),\
                    session.get_status_code(),\
                    session.get_cookies(),\
                    session.get_headers(),\
-                   session.get_agent()
+                   session.get_agent(), \
+                   session.get_js_status()
 
         if url:
-            result, status, cookies, headers, u_agent = HTMLrender(url, json_mode, js_render)
+            result, status, cookies, headers, u_agent, js_render = HTMLrender(url, json_mode, js_render)
             #temp = {}
             #for item in headers.items():
             #    key, value = item
