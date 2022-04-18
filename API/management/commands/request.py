@@ -69,7 +69,7 @@ def get_status(code):
         '509': 'Bandwidth Limit Exceeded',
         '510': 'Not Extended'
     }
-    return code_arr[code]
+    return f"{code}: {code_arr[code]}"
 
 
 class Web:
