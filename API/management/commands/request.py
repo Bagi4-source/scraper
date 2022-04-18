@@ -247,12 +247,12 @@ class Command(BaseCommand):
                        session.get_headers(),\
                        session.get_agent(), \
                        session.get_json_mode()
-            return "", \
+            return None, \
                    get_status(r.status_code), \
-                   [], \
-                   [], \
-                   "", \
-                   json_mode
+                   None, \
+                   None, \
+                   None, \
+                   None
 
         if url:
             result, status, cookies, headers, u_agent, json_mode = HTMLrender(url, json_mode, js_render)
