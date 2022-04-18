@@ -12,8 +12,8 @@ from bs4 import BeautifulSoup
 
 
 class Web:
-    def __init__(self, ip, capabilities, user_agent=FakeAgent().get_agent(),
-                 url="https://www.google.com/", proxy=None, js_render=False):
+    def __init__(self, ip, capabilities, js_render, user_agent=FakeAgent().get_agent(),
+                 url="https://www.google.com/", proxy=None):
         self.page = ""
         self.status = 0
         self.headers = ""
@@ -86,7 +86,7 @@ class Web:
             if js_render:
                 options.add_argument("--enable-javascript")
             else:
-                options.add_argument("--disable-javascript")
+                options.add_experimental_option("prefs", {'profile.managed_default_content_settings.javascript': 2})
             options.add_argument("--window-size=1920,1080")
             options.add_argument('--user-agent=%s' % self.user_agent)
             self.driver = webdriver.Remote(
