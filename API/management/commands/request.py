@@ -19,7 +19,7 @@ class Web:
         self.headers = ""
         self.cookies = []
         self.user_agent = user_agent
-        self.js_status = False
+        self.json_mode = False
         try:
             options = webdriver.ChromeOptions()
 
@@ -111,7 +111,7 @@ class Web:
                 pre = soup.find_all('pre')
                 if bool(len(pre)):
                     self.page = json.loads(soup.find('pre').text)
-                    self.js_status = True
+                    self.json_mode = True
         finally:
             self.driver.close()
             self.driver.quit()
@@ -131,8 +131,8 @@ class Web:
     def get_agent(self):
         return self.user_agent
 
-    def get_js_status(self):
-        return self.js_status
+    def get_json_mode(self):
+        return self.json_mode
 
 
 capabilities = {
@@ -179,10 +179,10 @@ class Command(BaseCommand):
                    session.get_cookies(),\
                    session.get_headers(),\
                    session.get_agent(), \
-                   session.get_js_status()
+                   session.get_json_mode()
 
         if url:
-            result, status, cookies, headers, u_agent, js_render = HTMLrender(url, json_mode, js_render)
+            result, status, cookies, headers, u_agent, json_mode = HTMLrender(url, json_mode, js_render)
             #temp = {}
             #for item in headers.items():
             #    key, value = item
