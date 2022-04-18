@@ -3,19 +3,79 @@ from django.core.management.base import BaseCommand
 import json
 from django.conf import settings
 import zipfile
-import time
+from requests_html import HTMLSession
 from selenium import webdriver
-from selenium.webdriver.common.by import By
 from API.FakeUA import FakeAgent
 import os
 from bs4 import BeautifulSoup
+
+
+def get_status(code):
+    code_arr = {
+        '100': 'Continue',
+        '101': 'Switching Protocols',
+        '102': 'Processing',
+        '103': 'Checkpoint',
+        '200': 'OK',
+        '201': 'Created',
+        '202': 'Accepted',
+        '203': 'Non-Authoritative Information',
+        '204': 'No Content',
+        '205': 'Reset Content',
+        '206': 'Partial Content',
+        '207': 'Multi-Status',
+        '300': 'Multiple Choices',
+        '301': 'Moved Permanently',
+        '302': 'Found',
+        '303': 'See Other',
+        '304': 'Not Modified',
+        '305': 'Use Proxy',
+        '306': 'Switch Proxy',
+        '307': 'Temporary Redirect',
+        '400': 'Bad Request',
+        '401': 'Unauthorized',
+        '402': 'Payment Required',
+        '403': 'Forbidden',
+        '404': 'Not Found',
+        '405': 'Method Not Allowed',
+        '406': 'Not Acceptable',
+        '407': 'Proxy Authentication Required',
+        '408': 'Request Timeout',
+        '409': 'Conflict',
+        '410': 'Gone',
+        '411': 'Length Required',
+        '412': 'Precondition Failed',
+        '413': 'Request Entity Too Large',
+        '414': 'Request-URI Too Long',
+        '415': 'Unsupported Media Type',
+        '416': 'Requested Range Not Satisfiable',
+        '417': 'Expectation Failed',
+        '418': 'I\'m a teapot',
+        '422': 'Unprocessable Entity',
+        '423': 'Locked',
+        '424': 'Failed Dependency',
+        '425': 'Unordered Collection',
+        '426': 'Upgrade Required',
+        '449': 'Retry With',
+        '450': 'Blocked by Windows Parental Controls',
+        '500': 'Internal Server Error',
+        '501': 'Not Implemented',
+        '502': 'Bad Gateway',
+        '503': 'Service Unavailable',
+        '504': 'Gateway Timeout',
+        '505': 'HTTP Version Not Supported',
+        '506': 'Variant Also Negotiates',
+        '507': 'Insufficient Storage',
+        '509': 'Bandwidth Limit Exceeded',
+        '510': 'Not Extended'
+    }
+    return code_arr[code]
 
 
 class Web:
     def __init__(self, ip, capabilities, js_render, json_mode, user_agent=FakeAgent().get_agent(),
                  url="https://www.google.com/", proxy=None):
         self.page = ""
-        self.status = 0
         self.headers = ""
         self.cookies = []
         self.user_agent = user_agent
@@ -100,7 +160,6 @@ class Web:
                 os.remove('temp/proxy_auth_plugin.zip')
 
             self.driver.get(url)
-            self.status = 0
             self.headers = self.driver.execute_script("var req = new XMLHttpRequest();req.open('GET', document.location, false);req.send(null);return req.getAllResponseHeaders()")
             self.headers = self.headers.splitlines()
             self.page = self.driver.page_source
@@ -115,9 +174,6 @@ class Web:
         finally:
             self.driver.close()
             self.driver.quit()
-
-    def get_status_code(self):
-        return self.status
 
     def get_page(self):
         return self.page
@@ -164,22 +220,35 @@ class Command(BaseCommand):
 
         def HTMLrender(link, json_mode=False, js_render=False):
             change_proxy_url = settings.CHANGE_PROXY_URL
-            session = Web(
-                ip=settings.SERVER_IP,
-                url=link,
-                json_mode=json_mode,
-                capabilities=capabilities,
-                proxy=settings.PROXY,
-                js_render=js_render
-            )
-            if change_proxy_url != "":
-                requests.get(change_proxy_url)
-            return session.get_page(),\
-                   session.get_status_code(),\
-                   session.get_cookies(),\
-                   session.get_headers(),\
-                   session.get_agent(), \
-                   session.get_json_mode()
+            session = HTMLSession()
+            ip, host, login, password = settings.PROXY
+            proxy = f'http://{login}:{password}@{ip}:{host}'
+            proxies = {'http': proxy, 'https': proxy}
+            r = session.get(link, proxies=proxies)
+            session.close()
+            if r.status_code == 200:
+                session = Web(
+                    ip=settings.SERVER_IP,
+                    url=link,
+                    json_mode=json_mode,
+                    capabilities=capabilities,
+                    proxy=settings.PROXY,
+                    js_render=js_render
+                )
+                if change_proxy_url != "":
+                    requests.get(change_proxy_url)
+                return session.get_page(),\
+                       get_status(r.status_code),\
+                       session.get_cookies(),\
+                       session.get_headers(),\
+                       session.get_agent(), \
+                       session.get_json_mode()
+            return "", \
+                   get_status(r.status_code), \
+                   [], \
+                   [], \
+                   "", \
+                   json_mode
 
         if url:
             result, status, cookies, headers, u_agent, json_mode = HTMLrender(url, json_mode, js_render)
