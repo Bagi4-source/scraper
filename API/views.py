@@ -1,4 +1,3 @@
-import asyncio
 import json
 import time
 import random
@@ -10,6 +9,7 @@ from threading import Thread
 
 
 def Request(request):
+    print('parse')
     data = request.GET
     url = data.get("url")
     json_mode = 0
@@ -27,23 +27,18 @@ def Request(request):
     result = ""
     name = random.getrandbits(128)
 
-    async def start_request(url, name, json_mode, js_render, advanced):
-        global result
-        os.system(f'python3 manage.py request "{url}" "{name}" {json_mode} {js_render} {advanced}')
-        k = 0
-        while not os.path.isfile(f"temp/{name}.json") and k <= 150:
-            time.sleep(0.3)
-            k += 1
+    os.system(f'python3 manage.py request "{url}" "{name}" {json_mode} {js_render} {advanced}')
 
-        if os.path.isfile(f"temp/{name}.json"):
-            with open(f"temp/{name}.json", "r") as File:
-                result = json.loads(File.read())
-            os.remove(f"temp/{name}.json")
-        return JsonResponse(result)
-    t = Thread(target=start_request, args=(url, name, json_mode, js_render, advanced, ))
-    t.start()
-    return t.join()
+    k = 0
+    while not os.path.isfile(f"temp/{name}.json") and k <= 150:
+        time.sleep(0.3)
+        k += 1
 
+    if os.path.isfile(f"temp/{name}.json"):
+        with open(f"temp/{name}.json", "r") as File:
+            result = json.loads(File.read())
+        os.remove(f"temp/{name}.json")
+    return JsonResponse(result)
 
 
 def Home(request):
