@@ -1,3 +1,4 @@
+import asyncio
 import json
 import time
 import random
@@ -6,10 +7,6 @@ from django.shortcuts import render
 from django.http import JsonResponse
 from django.db.models import Q
 from threading import Thread
-
-
-def start_request(url, name, json_mode, js_render, advanced):
-    os.system(f'python3 manage.py request "{url}" "{name}" {json_mode} {js_render} {advanced}')
 
 
 def Request(request):
@@ -30,17 +27,22 @@ def Request(request):
     result = ""
     name = random.getrandbits(128)
 
-    Thread(target=start_request, args=(url, name, json_mode, js_render, advanced, )).start()
+    async def start_request(url, name, json_mode, js_render, advanced):
+        global result
+        os.system(f'python3 manage.py request "{url}" "{name}" {json_mode} {js_render} {advanced}')
+        k = 0
+        while not os.path.isfile(f"temp/{name}.json") and k <= 150:
+            time.sleep(0.3)
+            k += 1
 
-    k = 0
-    while not os.path.isfile(f"temp/{name}.json") and k <= 150:
-        time.sleep(0.3)
-        k += 1
+        if os.path.isfile(f"temp/{name}.json"):
+            with open(f"temp/{name}.json", "r") as File:
+                result = json.loads(File.read())
+            os.remove(f"temp/{name}.json")
 
-    if os.path.isfile(f"temp/{name}.json"):
-        with open(f"temp/{name}.json", "r") as File:
-            result = json.loads(File.read())
-        os.remove(f"temp/{name}.json")
+    loop = asyncio.new_event_loop()
+    loop.run_until_complete(start_request(url, name, json_mode, js_render, advanced))
+    loop.close()
     return JsonResponse(result)
 
 
