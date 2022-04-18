@@ -40,8 +40,9 @@ def Request(request):
                 result = json.loads(File.read())
             os.remove(f"temp/{name}.json")
         return JsonResponse(result)
-
-    return Thread(target=start_request, args=(url, name, json_mode, js_render, advanced, )).join()
+    t = Thread(target=start_request, args=(url, name, json_mode, js_render, advanced, ))
+    t.start()
+    return t.join()
 
 
 
