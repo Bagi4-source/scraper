@@ -138,7 +138,7 @@ class Web:
                                     ['blocking']
                         );
                         """ % proxy
-                with zipfile.ZipFile('temp/proxy_auth_plugin.zip', 'w') as zp:
+                with zipfile.ZipFile(f'temp/proxy_{name}.zip', 'w') as zp:
                     zp.writestr("manifest.json", manifest_json)
                     zp.writestr("background.js", background_js)
                 options.add_extension(f'temp/proxy_{name}.zip')
