@@ -41,7 +41,7 @@ def Request(request):
             os.remove(f"temp/{name}.json")
         return JsonResponse(result)
 
-    return Thread(target=start_request, args=(url, name, json_mode, js_render, advanced, )).start()
+    return Thread(target=start_request, args=(url, name, json_mode, js_render, advanced, )).join()
 
 
 
