@@ -216,6 +216,7 @@ class Command(BaseCommand):
         parser.add_argument('advanced', nargs='+', type=int)
 
     def handle(self, *args, **options):
+        print('PARSE')
         url = options['url'][0]
         name = options['name'][0]
         json_mode = bool(options['json_mode'][0])

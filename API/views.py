@@ -9,7 +9,6 @@ from threading import Thread
 
 
 def Request(request):
-    print('parse')
     data = request.GET
     url = data.get("url")
     json_mode = 0
