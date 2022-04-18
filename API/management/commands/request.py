@@ -9,6 +9,7 @@ from API.FakeUA import FakeAgent
 import os
 from bs4 import BeautifulSoup
 import random
+from threading import Thread
 
 
 def get_status(code):
@@ -215,13 +216,7 @@ class Command(BaseCommand):
         parser.add_argument('js_render', nargs='+', type=int)
         parser.add_argument('advanced', nargs='+', type=int)
 
-    def handle(self, *args, **options):
-        url = options['url'][0]
-        name = options['name'][0]
-        json_mode = bool(options['json_mode'][0])
-        js_render = bool(options['js_render'][0])
-        advanced = bool(options['advanced'][0])
-
+    def start(self, url, name, json_mode, js_render, advanced):
         def HTMLrender(link, json_mode=False, js_render=False):
             change_proxy_url = settings.CHANGE_PROXY_URL
             session = HTMLSession()
@@ -241,10 +236,10 @@ class Command(BaseCommand):
                 )
                 if change_proxy_url != "":
                     requests.get(change_proxy_url)
-                return session.get_page(),\
-                       get_status(r.status_code),\
-                       session.get_cookies(),\
-                       session.get_headers(),\
+                return session.get_page(), \
+                       get_status(r.status_code), \
+                       session.get_cookies(), \
+                       session.get_headers(), \
                        session.get_agent(), \
                        session.get_json_mode()
             return None, \
@@ -256,27 +251,27 @@ class Command(BaseCommand):
 
         if url:
             result, status, cookies, headers, u_agent, json_mode = HTMLrender(url, json_mode, js_render)
-            #temp = {}
-            #for item in headers.items():
+            # temp = {}
+            # for item in headers.items():
             #    key, value = item
             #    temp[key] = value
-            #headers = temp
-            #temp = {}
-            #for item in cookies.items():
+            # headers = temp
+            # temp = {}
+            # for item in cookies.items():
             #    key, value = item
             #    temp[key] = value
-            #cookies = temp
+            # cookies = temp
 
             data = {
-                    "url": url,
-                    "status_code": status,
-                    "user_agent": u_agent,
-                    "params": {
-                        "json": json_mode,
-                        "js_render": js_render,
-                        "advanced": advanced,
-                    },
-                }
+                "url": url,
+                "status_code": status,
+                "user_agent": u_agent,
+                "params": {
+                    "json": json_mode,
+                    "js_render": js_render,
+                    "advanced": advanced,
+                },
+            }
             if advanced:
                 data["headers"] = headers
                 data["cookies"] = cookies
@@ -285,3 +280,12 @@ class Command(BaseCommand):
 
             with open(file=f"temp/{name}.json", mode="w") as f:
                 f.write(json.dumps(data))
+
+    def handle(self, *args, **options):
+        url = options['url'][0]
+        name = options['name'][0]
+        json_mode = bool(options['json_mode'][0])
+        js_render = bool(options['js_render'][0])
+        advanced = bool(options['advanced'][0])
+
+        Thread(target=self.start, args=(url, name, json_mode, js_render, advanced, )).start()
