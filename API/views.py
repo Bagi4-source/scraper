@@ -5,6 +5,11 @@ import os
 from django.shortcuts import render
 from django.http import JsonResponse
 from django.db.models import Q
+from threading import Thread
+
+
+def start_request(url, name, json_mode, js_render, advanced):
+    os.system(f'python3 manage.py request "{url}" "{name}" {json_mode} {js_render} {advanced}')
 
 
 def Request(request):
@@ -24,7 +29,8 @@ def Request(request):
 
     result = ""
     name = random.getrandbits(128)
-    os.system(f'python3 manage.py request "{url}" "{name}" {json_mode} {js_render} {advanced}')
+
+    Thread(target=start_request, args=(url, name, json_mode, js_render, advanced, )).start()
 
     k = 0
     while not os.path.isfile(f"temp/{name}.json") and k <= 150:
