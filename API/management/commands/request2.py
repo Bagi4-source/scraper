@@ -1,23 +1,16 @@
 import requests
 from django.core.management.base import BaseCommand
+from requests_html import HTMLSession
 import json
 from django.conf import settings
 import zipfile
 import time
 from selenium import webdriver
-from selenium.webdriver.common.by import By
 from API.FakeUA import FakeAgent
-import os
-from bs4 import BeautifulSoup
 
 
 class Web:
     def __init__(self, ip, capabilities, user_agent=FakeAgent().get_agent(), url="https://www.google.com/", proxy=None):
-        self.page = ""
-        self.status = 0
-        self.headers = ""
-        self.cookies = []
-        self.user_agent = user_agent
         try:
             options = webdriver.ChromeOptions()
 
@@ -72,69 +65,32 @@ class Web:
                                     ['blocking']
                         );
                         """ % proxy
-                with zipfile.ZipFile('temp/proxy_auth_plugin.zip', 'w') as zp:
+                with zipfile.ZipFile('extensions/proxy_auth_plugin.zip', 'w') as zp:
                     zp.writestr("manifest.json", manifest_json)
                     zp.writestr("background.js", background_js)
-                options.add_extension('temp/proxy_auth_plugin.zip')
+                options.add_extension('extensions/proxy_auth_plugin.zip')
 
             options.add_experimental_option("excludeSwitches", ["enable-automation"])
             options.add_experimental_option('useAutomationExtension', False)
-            #options.add_extension('extensions/canvas_extension.crx')
+            options.add_extension('extensions/canvas_extension.crx')
             options.add_argument("--disable-blink-features=AutomationControlled")
             options.add_argument("--disable-dev-shm-usage")
             options.add_argument("--enable-javascript")
             options.add_argument("--window-size=1920,1080")
-            options.add_argument('--user-agent=%s' % self.user_agent)
+            options.add_argument('--user-agent=%s' % user_agent)
             self.driver = webdriver.Remote(
                 command_executor=f'http://{ip}:4444/wd/hub',
                 desired_capabilities=capabilities,
                 options=options
             )
             self.actions = webdriver.ActionChains(self.driver)
-            if proxy:
-                os.remove('temp/proxy_auth_plugin.zip')
+            #if proxy:
+                #os.remove('extensions/proxy_auth_plugin.zip')
 
             self.driver.get(url)
-            self.status = 0
-            self.headers = self.driver.execute_script("var req = new XMLHttpRequest();req.open('GET', document.location, false);req.send(null);return req.getAllResponseHeaders()")
-            self.headers = self.headers.splitlines()
-            self.page = self.driver.page_source
-            self.cookies = self.driver.get_cookies()
-        finally:
-            self.driver.close()
-            self.driver.quit()
-
-    def get_status_code(self):
-        return self.status
-
-    def get_page(self, json_mode):
-        if json_mode and self.page != "":
-            soup = BeautifulSoup(self.page, 'lxml')
-            pre = soup.find_all('pre')
-            if bool(len(pre)):
-                data = json.loads(soup.find('pre').text)
-                return data
-        return self.page
-
-    def get_cookies(self):
-        return self.cookies
-
-    def get_headers(self):
-        return self.headers
-
-    def get_agent(self):
-        return self.user_agent
-
-
-capabilities = {
-    "browserName": "chrome",
-    "browserVersion": "100.0",
-    "selenoid:options": {
-        "enableVNC": True,
-        "enableVideo": False
-    }
-}
-
+            time.sleep(3)
+        except Exception as _ex:
+            print(_ex)
 
 class Command(BaseCommand):
     help = 'Request'
@@ -154,33 +110,36 @@ class Command(BaseCommand):
         advanced = bool(options['advanced'][0])
 
         def HTMLrender(link, json_mode=False, js_render=False):
+            proxy = settings.PROXY
             change_proxy_url = settings.CHANGE_PROXY_URL
-            session = Web(ip=settings.SERVER_IP, url=link, capabilities=capabilities, proxy=settings.PROXY)
+            proxies = {'http': proxy, 'https': proxy}
+            session = HTMLSession()
+            r = session.get(link)
+            if r.status_code == 200 and js_render:
+                r.html.render(sleep = 10)
+            session.close()
             if change_proxy_url != "":
                 requests.get(change_proxy_url)
-            return session.get_page(json_mode),\
-                   session.get_status_code(),\
-                   session.get_cookies(),\
-                   session.get_headers(),\
-                   session.get_agent()
+            if json_mode:
+                return r.json(), r.status_code, r.headers, r.cookies
+            return r.html.html, r.status_code, r.headers, r.cookies
 
         if url:
-            result, status, cookies, headers, u_agent = HTMLrender(url, json_mode, js_render)
-            #temp = {}
-            #for item in headers.items():
-            #    key, value = item
-            #    temp[key] = value
-            #headers = temp
-            #temp = {}
-            #for item in cookies.items():
-            #    key, value = item
-            #    temp[key] = value
-            #cookies = temp
+            result, status, headers, cookies = HTMLrender(url, json_mode, js_render)
+            temp = {}
+            for item in headers.items():
+                key, value = item
+                temp[key] = value
+            headers = temp
+            temp = {}
+            for item in cookies.items():
+                key, value = item
+                temp[key] = value
+            cookies = temp
 
             data = {
                     "url": url,
-                    "status_code": status,
-                    "user_agent": u_agent,
+                    "status": status,
                     "params": {
                         "json": json_mode,
                         "js_render": js_render,
