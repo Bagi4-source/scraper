@@ -12,7 +12,8 @@ from bs4 import BeautifulSoup
 
 
 class Web:
-    def __init__(self, ip, capabilities, user_agent=FakeAgent().get_agent(), url="https://www.google.com/", proxy=None):
+    def __init__(self, ip, capabilities, user_agent=FakeAgent().get_agent(),
+                 url="https://www.google.com/", proxy=None, js_render=False):
         self.page = ""
         self.status = 0
         self.headers = ""
@@ -82,7 +83,10 @@ class Web:
             #options.add_extension('extensions/canvas_extension.crx')
             options.add_argument("--disable-blink-features=AutomationControlled")
             options.add_argument("--disable-dev-shm-usage")
-            options.add_argument("--enable-javascript")
+            if js_render:
+                options.add_argument("--enable-javascript")
+            else:
+                options.add_argument("--disable-javascript")
             options.add_argument("--window-size=1920,1080")
             options.add_argument('--user-agent=%s' % self.user_agent)
             self.driver = webdriver.Remote(
@@ -155,7 +159,13 @@ class Command(BaseCommand):
 
         def HTMLrender(link, json_mode=False, js_render=False):
             change_proxy_url = settings.CHANGE_PROXY_URL
-            session = Web(ip=settings.SERVER_IP, url=link, capabilities=capabilities, proxy=settings.PROXY)
+            session = Web(
+                ip=settings.SERVER_IP,
+                url=link,
+                capabilities=capabilities,
+                proxy=settings.PROXY,
+                js_render=js_render
+            )
             if change_proxy_url != "":
                 requests.get(change_proxy_url)
             return session.get_page(json_mode),\
