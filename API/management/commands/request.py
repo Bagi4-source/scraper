@@ -86,7 +86,6 @@ class Web:
         self.json_mode = False
         try:
             options = webdriver.ChromeOptions()
-            name = random.getrandbits(128)
             if proxy:
                 manifest_json = """
                         {
@@ -138,10 +137,10 @@ class Web:
                                     ['blocking']
                         );
                         """ % proxy
-                with zipfile.ZipFile(f'temp/proxy_{name}.zip', 'w') as zp:
+                with zipfile.ZipFile(f'temp/proxy.zip', 'w') as zp:
                     zp.writestr("manifest.json", manifest_json)
                     zp.writestr("background.js", background_js)
-                options.add_extension(f'temp/proxy_{name}.zip')
+                options.add_extension(f'temp/proxy.zip')
 
             options.add_experimental_option("excludeSwitches", ["enable-automation"])
             options.add_experimental_option('useAutomationExtension', False)
@@ -160,9 +159,6 @@ class Web:
                 options=options
             )
             self.actions = webdriver.ActionChains(self.driver)
-            if proxy:
-                os.remove(f'temp/proxy_{name}.zip')
-
             self.driver.get(url)
             #self.headers = self.driver.execute_script("var req = new XMLHttpRequest();req.open('GET', document.location, false);req.send(null);return req.getAllResponseHeaders()")
             #self.headers = self.headers.splitlines()
