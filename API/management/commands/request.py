@@ -239,7 +239,7 @@ class Command(BaseCommand):
                    session.get_json_mode()
 
         if url:
-            result, status, cookies, headers, u_agent, json_mode = HTMLrender(url, json_mode, js_render)
+            result, cookies, headers, u_agent, json_mode = HTMLrender(url, json_mode, js_render)
             #temp = {}
             #for item in headers.items():
             #    key, value = item
@@ -253,7 +253,6 @@ class Command(BaseCommand):
 
             data = {
                     "url": url,
-                    "status_code": status,
                     "user_agent": u_agent,
                     "params": {
                         "json": json_mode,
