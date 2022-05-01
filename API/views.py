@@ -4,8 +4,6 @@ import random
 import os
 from django.shortcuts import render
 from django.http import JsonResponse
-from django.db.models import Q
-from threading import Thread
 
 
 def Request(request):
@@ -51,4 +49,4 @@ def Home(request):
     context = {
         'ip': ip,
     }
-    return render(request, 'API/templates/API/index.html', context=context)
+    return render(request, 'API/index.html', context=context)
