@@ -125,6 +125,6 @@ STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-PROXY = ("45.146.169.86", "63111", "NgKPqEcT", "cdQvqNGa")
-CHANGE_PROXY_URL = ""
+PROXY = ("eu-prx-01.carrierproxy.com", "25246", "8cNlJh", "O1VW9U")
+CHANGE_PROXY_URL = "http://eu-prx-01.carrierproxy.com/change_ip_78b830752c881500a75b5e19ce33114e"
 SERVER_IP = "5.182.5.220"
