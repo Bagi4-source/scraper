@@ -51,4 +51,4 @@ def Home(request):
     context = {
         'ip': ip,
     }
-    return render(request, 'API/index.html', context=context)
+    return render(request, 'API/templates/API/index.html', context=context)
