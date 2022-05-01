@@ -226,35 +226,21 @@ class Command(BaseCommand):
 
         def HTMLrender(link, json_mode=False, js_render=False):
             change_proxy_url = settings.CHANGE_PROXY_URL
-            session = HTMLSession()
-            ip, host, login, password = settings.PROXY
-            proxy = f'http://{login}:{password}@{ip}:{host}'
-            proxies = {'http': proxy, 'https': proxy}
-            r = session.get(link, proxies=proxies)
-            session.close()
-            if r.status_code == 200:
-                session = Web(
-                    ip=settings.SERVER_IP,
-                    url=link,
-                    json_mode=json_mode,
-                    capabilities=capabilities,
-                    proxy=settings.PROXY,
-                    js_render=js_render
-                )
-                if change_proxy_url != "":
-                    requests.get(change_proxy_url)
-                return session.get_page(),\
-                       get_status(r.status_code),\
-                       session.get_cookies(),\
-                       session.get_headers(),\
-                       session.get_agent(), \
-                       session.get_json_mode()
-            return None, \
-                   get_status(r.status_code), \
-                   None, \
-                   None, \
-                   None, \
-                   None
+            session = Web(
+                ip=settings.SERVER_IP,
+                url=link,
+                json_mode=json_mode,
+                capabilities=capabilities,
+                proxy=settings.PROXY,
+                js_render=js_render
+            )
+            if change_proxy_url != "":
+                requests.get(change_proxy_url)
+            return session.get_page(),\
+                   session.get_cookies(),\
+                   session.get_headers(),\
+                   session.get_agent(), \
+                   session.get_json_mode()
 
         if url:
             result, status, cookies, headers, u_agent, json_mode = HTMLrender(url, json_mode, js_render)
